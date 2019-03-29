@@ -18,12 +18,36 @@ sqlite3 /run/shm/lqi.db "SELECT * FROM lqi;"
 
 sqlite3 /run/shm/lqi.db "SELECT DISTINCT neighborNwkAddr, neighborExtAddr FROM lqi;"
 
+sqlite3 /run/shm/lqi.db "SELECT * FROM lqi_history;"
+
 sqlite3 /run/shm/lqi.db "SELECT count(*), neighborNwkAddr, neighborExtAddr, srcAddr \
                          FROM lqi_history \
                          GROUP by neighborNwkAddr,srcAddr \
                          ORDER by count(*) DESC;"
 ```
 
+
+# Generate a network map from neighbor tables
+
+The Python script `gviz_crt.py` reads the lqi.db database and generates a network map using [PyGraphviz](http://pygraphviz.github.io/documentation/pygraphviz-1.5/reference/agraph.html)
+
+The script checks if the database `/run/shm/lqi.db` is found, otherwise it expects a file `lqi.csv` with "|" delimiter. If a file `lqi-names.csv` does not exist, the script checks for `/home/pi/.local/share/dresden-elektronik/deCONZ/zll.db` and generates a csv file with mac and names. A device with more than one endpoint has  more than one name. The sql query eliminates duplicate names from table nodes and sensors using `GROUP by d.mac` and `GROUP by substr(s.uniqueid,0,24)`.
+
+Install required Python package
+
+    sudo apt-get install python-pygraphviz
+
+Run the script
+
+    ./gviz_crt.py
+
+A png file `lqi-xxxx.png` is created.
+
+![](docs/lqi.png)
+
+The green lines are from a router to a neighbor child. The orange lines are from a router to a neighbor parent. The yellow lines are from a router to a neighbor previous_child. The dashed lines are between neighbor siblings. The solid lines are from router to neighbors marked as None of above, i.e. not parent, not child, not sibling.
+
+The number on the green and orange lines is the lqi link quality.
 
 # Installation
 
